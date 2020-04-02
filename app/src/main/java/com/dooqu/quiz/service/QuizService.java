@@ -8,7 +8,9 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import com.dooqu.quiz.media.Mp3AudioTrack;
+
+import com.dooqu.quiz.sound.Mp3AudioTrack;
+
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -58,6 +60,8 @@ public class QuizService extends Service {
             }
         };
         audioChannelRecord.start();
+        mp3AudioTrack = new Mp3AudioTrack(audioChannelRecord.getSessionId());
+        mp3AudioTrack.play();
     }
 
     @Override
@@ -68,6 +72,9 @@ public class QuizService extends Service {
         }
         audioChannelRecord.stop();
         audioChannelRecord.release();
+
+        mp3AudioTrack.stop();
+        mp3AudioTrack.release();
 
     }
 
@@ -112,14 +119,14 @@ public class QuizService extends Service {
                     break;
 
                 case "SKL":
-                    if (mp3AudioTrack != null) {
+/*                    if (mp3AudioTrack != null) {
                         mp3AudioTrack.stop();
                         mp3AudioTrack.release();
                         mp3AudioTrack = null;
                     }
                     long totalSize = Long.parseLong(command.getArgumentAt(1));
                     mp3AudioTrack = new Mp3AudioTrack(totalSize, audioChannelRecord.getSessionId());
-                    mp3AudioTrack.play();
+                    mp3AudioTrack.play();*/
                     break;
             }
         }
@@ -138,8 +145,8 @@ public class QuizService extends Service {
             super.onClosing(webSocket, code, reason);
             attachRecordingData = false;
             isSkillFirstFrameData = false;
-            mp3AudioTrack.stop();
-            mp3AudioTrack.release();
+            //mp3AudioTrack.stop();
+            //mp3AudioTrack.release();
             Log.d(TAG, "onClosing");
         }
 

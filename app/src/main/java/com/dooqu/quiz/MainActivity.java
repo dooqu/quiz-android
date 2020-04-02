@@ -72,7 +72,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     protected void startQuizService() {
-        serviceProxy.bind();
+        if(serviceProxy.isConnected() == false) {
+            serviceProxy.bind();
+        }
     }
 
     protected void stopQuizService() {
@@ -124,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopQuizService();
     }
 
 }
