@@ -5,6 +5,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.os.Build;
@@ -12,6 +16,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dooqu.quiz.service.AudioChannelRecord;
@@ -27,17 +33,44 @@ import okhttp3.Request;
 import okhttp3.WebSocket;
 import okio.ByteString;
 
+import static com.dooqu.quiz.service.QuizService.BROAD_CAST_NAME;
+
 public class MainActivity extends AppCompatActivity {
     static String TAG = MainActivity.class.getSimpleName();
     Handler handler;
     ServiceProxy serviceProxy;
+    TextView tvSubjectTitle;
+    TextView tvSubjectOption0;
+    TextView tvSubjectOption1;
+    TextView tvSubjectOption2;
+    TextView tvSubjectOption3;
+    TextView tvSubjectOption4;
+    Button btnNewGame;
+
     WeakReference<QuizService> quizServiceWeakReference;
+    QuizEventReceiver quizEventReceiver;
+    IntentFilter intentFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_main);
+        tvSubjectTitle = findViewById(R.id.tvSubjectTitle);
+        tvSubjectOption0 = findViewById(R.id.tvOption0);
+        tvSubjectOption1 = findViewById(R.id.tvOption1);
+        tvSubjectOption2 = findViewById(R.id.tvOption2);
+        tvSubjectOption3 = findViewById(R.id.tvOption3);
+        tvSubjectOption4 = findViewById(R.id.tvOption4);
+        btnNewGame = findViewById(R.id.btnNewGame);
         handler = new Handler();
+        btnNewGame.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(quizServiceWeakReference.get() != null) {
+                    quizServiceWeakReference.get().requestNewGame();
+                }
+            }
+        });
         serviceProxy = new ServiceProxy(this, "com.dooqu.quiz.service.QuizService", "com.dooqu.quiz") {
             @Override
             protected void onConnected(boolean connected, IBinder serviceBinder) {
@@ -49,14 +82,17 @@ public class MainActivity extends AppCompatActivity {
                 quizServiceWeakReference.get().connectService();
             }
         };
+        quizEventReceiver = new QuizEventReceiver();
+        intentFilter = new IntentFilter(BROAD_CAST_NAME);
+        registerReceiver(quizEventReceiver, intentFilter);
         requestPermissions();
-    }
+    };
 
     private void enabledButton(final boolean enabled) {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                findViewById(R.id.button).setEnabled(enabled);
+                findViewById(R.id.btnNewGame).setEnabled(enabled);
             }
         });
     }
@@ -65,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(MainActivity.this, "已经连接到服务器", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -86,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> permissionsNotGranted = new ArrayList<String>();
             String permissions[] = {
                     Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
             };
 
             for (String permission : permissions) {
@@ -122,11 +159,80 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    protected void setTitle(String title) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                tvSubjectTitle.setText(title);
+            }
+        });
+    }
+
+    protected void setOption(String option, int optionIndex) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                setOption(option, optionIndex);
+                switch (optionIndex) {
+                    case 0:
+                        tvSubjectOption0.setText(option);
+                        break;
+                    case 1:
+                        tvSubjectOption1.setText(option);
+                        break;
+                    case 2:
+                        tvSubjectOption2.setText(option);
+                        break;
+                    case 3:
+                        tvSubjectOption3.setText(option);
+                        break;
+                    case 4:
+                        tvSubjectOption4.setText(option);
+                        break;
+                }
+            }
+        });
+    }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopQuizService();
+        unregisterReceiver(quizEventReceiver);
+    }
+
+    public class QuizEventReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String eventType = intent.getStringExtra("event");
+            if(eventType == null) {
+                return;
+            }
+
+            switch (eventType) {
+                case "subject_title":
+                    setTitle(intent.getStringExtra("title"));
+                    break;
+
+                case "subject_option":
+                    setOption(intent.getStringExtra("option"), intent.getIntExtra("index", -1));
+                    break;
+
+                case "join_room":
+                    enabledButton(true);
+                    break;
+
+                case "asr_start":
+                    toastMessage("请说答案");
+                    break;
+
+                case "asr_stop":
+                    toastMessage("识别完成");
+                    break;
+            }
+        }
     }
 
 }

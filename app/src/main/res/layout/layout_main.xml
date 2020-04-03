@@ -2,11 +2,58 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/tvSubjectTitle"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_margin="10dp"
+        android:text="TextView" />
+    <TextView
+        android:id="@+id/tvOption0"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_margin="10dp"
+        android:layout_below="@id/tvSubjectTitle"
+        android:text="TextView" />
+    <TextView
+        android:id="@+id/tvOption1"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_margin="10dp"
+        android:layout_below="@id/tvOption0"
+        android:text="TextView" />
+    <TextView
+        android:id="@+id/tvOption2"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_margin="10dp"
+        android:layout_below="@id/tvOption1"
+        android:text="TextView" />
+    <TextView
+        android:id="@+id/tvOption3"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_margin="10dp"
+        android:layout_below="@id/tvOption2"
+        android:text="TextView" />
+    <TextView
+        android:id="@+id/tvOption4"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_margin="10dp"
+        android:layout_below="@id/tvOption3"
+        android:text="TextView" />
+
+
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btnNewGame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
+        android:layout_below="@+id/tvOption4"
         android:text="STT" />
+
+
 
 </RelativeLayout>

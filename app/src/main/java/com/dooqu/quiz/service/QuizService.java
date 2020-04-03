@@ -28,6 +28,7 @@ public class QuizService extends Service {
     }
 
     static String TAG = QuizService.class.getSimpleName();
+    public static String BROAD_CAST_NAME = "com.dooqu.quiz";
     OkHttpClient client;
     Request request;
     WebSocket socket;
@@ -38,6 +39,7 @@ public class QuizService extends Service {
     IBinder binder = new QuizServiceBinder();
     int frameCount = 0;
     Mp3AudioTrack mp3AudioTrack;
+    volatile boolean isSocketConnected;
 
     @Nullable
     @Override
@@ -85,7 +87,14 @@ public class QuizService extends Service {
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .build();
         request = new Request.Builder().url("ws://dooqu.com:8000/service/quiz").build();
+        //request = new Request.Builder().url("ws://192.168.31.38:8080/service/quiz").build();
         client.newWebSocket(request, webSocketListener);
+    }
+
+    public void requestNewGame() {
+        if(isSocketConnected == true) {
+            socket.send("STT");
+        }
     }
 
     WebSocketListener webSocketListener = new WebSocketListener() {
@@ -93,6 +102,7 @@ public class QuizService extends Service {
         public void onOpen(WebSocket webSocket, Response response) {
             super.onOpen(webSocket, response);
             socket = webSocket;
+            isSocketConnected = true;
             channelBinder.attach();
         }
 
@@ -102,6 +112,8 @@ public class QuizService extends Service {
             super.onMessage(webSocket, text);
             Log.d(TAG, "onTextMessage:" + text);
             Command command = Command.parse(text);
+            Intent intent = new Intent();
+            intent.setAction(BROAD_CAST_NAME);
             if (command == null) {
                 return;
             }
@@ -109,28 +121,37 @@ public class QuizService extends Service {
                 case "ASR":
                     if ("1".equals(command.getArgumentAt(0))) {
                         attachRecordingData = true;
+                        intent.putExtra("event", "asr_start");
                     }
                     else if ("0".equals(command.getArgumentAt(0))) {
                         attachRecordingData = false;
+                        intent.putExtra("event", "asr_stop");
                     }
+                    sendBroadcast(intent);
                     break;
                 case "JRM":
-                    socket.send("STT");
+                    intent.putExtra("event", "join_game");
+                    sendBroadcast(intent);
                     break;
 
                 case "SKL":
-/*                    if (mp3AudioTrack != null) {
-                        mp3AudioTrack.stop();
-                        mp3AudioTrack.release();
-                        mp3AudioTrack = null;
-                    }
-                    long totalSize = Long.parseLong(command.getArgumentAt(1));
-                    mp3AudioTrack = new Mp3AudioTrack(totalSize, audioChannelRecord.getSessionId());
-                    mp3AudioTrack.play();*/
+                    intent.putExtra("event", "skill_start");
+                    sendBroadcast(intent);
+                    break;
+
+                case "TIT":
+                    intent.putExtra("event", "subject_title");
+                    intent.putExtra("title", command.getArgumentAt(0));
+                    sendBroadcast(intent);
+                    break;
+                case "OPT":
+                    intent.putExtra("event", "subject_option");
+                    intent.putExtra("index", Integer.parseInt(command.getArgumentAt(0)));
+                    intent.putExtra("option", command.getArgumentAt(1));
+                    sendBroadcast(intent);
                     break;
             }
         }
-
 
         @Override
         public void onMessage(WebSocket webSocket, ByteString bytes) {
@@ -145,8 +166,7 @@ public class QuizService extends Service {
             super.onClosing(webSocket, code, reason);
             attachRecordingData = false;
             isSkillFirstFrameData = false;
-            //mp3AudioTrack.stop();
-            //mp3AudioTrack.release();
+            isSocketConnected = false;
             Log.d(TAG, "onClosing");
         }
 
