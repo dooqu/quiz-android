@@ -9,6 +9,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.dooqu.quiz.R;
 import com.dooqu.quiz.sound.Mp3AudioTrack;
 
 import java.util.concurrent.TimeUnit;
@@ -40,6 +41,7 @@ public class QuizService extends Service {
     int frameCount = 0;
     Mp3AudioTrack mp3AudioTrack;
     volatile boolean isSocketConnected;
+    NotificationHelper<QuizService> notificationHelper;
 
     @Nullable
     @Override
@@ -50,6 +52,8 @@ public class QuizService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        notificationHelper = new NotificationHelper<>(this, R.mipmap.icon_notif);
+        notificationHelper.retainForeground();
         audioChannelRecord = new AudioChannelRecord(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
         channelBinder = audioChannelRecord.new ChannelBinder() {
             @Override
@@ -72,6 +76,8 @@ public class QuizService extends Service {
         if (socket != null) {
             socket.close(1001, "server closed.");
         }
+        notificationHelper.cancelForeground();
+
         audioChannelRecord.stop();
         audioChannelRecord.release();
 
@@ -86,13 +92,13 @@ public class QuizService extends Service {
                 .readTimeout(5, TimeUnit.SECONDS)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .build();
-        request = new Request.Builder().url("ws://dooqu.com:8000/service/quiz").build();
-        //request = new Request.Builder().url("ws://192.168.31.38:8080/service/quiz").build();
+        //request = new Request.Builder().url("ws://dooqu.com:8000/service/quiz").build();
+        request = new Request.Builder().url("ws://192.168.31.38:8080/service/quiz").build();
         client.newWebSocket(request, webSocketListener);
     }
 
     public void requestNewGame() {
-        if(isSocketConnected == true) {
+        if (isSocketConnected == true) {
             socket.send("STT");
         }
     }
@@ -150,13 +156,19 @@ public class QuizService extends Service {
                     intent.putExtra("option", command.getArgumentAt(1));
                     sendBroadcast(intent);
                     break;
+                case "URS":
+                    intent.putExtra("event", "asr_result");
+                    intent.putExtra("result_index", Integer.parseInt(command.getArgumentAt(0)));
+                    intent.putExtra("result_string", command.getArgumentAt(1));
+                    sendBroadcast(intent);
+                    break;
             }
         }
 
         @Override
         public void onMessage(WebSocket webSocket, ByteString bytes) {
             super.onMessage(webSocket, bytes);
-            Log.d(TAG, "onByteMessage:" + bytes.size() + "framecount=" + bytes.size());
+            //Log.d(TAG, "onByteMessage:" + bytes.size() + "framecount=" + bytes.size());
             mp3AudioTrack.write(bytes.toByteArray(), 0, bytes.size());
         }
 

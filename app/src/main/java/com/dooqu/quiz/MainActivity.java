@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tvSubjectOption2;
     TextView tvSubjectOption3;
     TextView tvSubjectOption4;
+    TextView tvUserASRResult;
     Button btnNewGame;
 
     WeakReference<QuizService> quizServiceWeakReference;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         tvSubjectOption3 = findViewById(R.id.tvOption3);
         tvSubjectOption4 = findViewById(R.id.tvOption4);
         btnNewGame = findViewById(R.id.btnNewGame);
+        tvUserASRResult = findViewById(R.id.tvUserASRResult);
         handler = new Handler();
         btnNewGame.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -163,7 +166,9 @@ public class MainActivity extends AppCompatActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                tvSubjectTitle.setText(title);
+                tvSubjectTitle.setText(title + "?");
+                clearOptionsText();
+                clearOptionsColor();
             }
         });
     }
@@ -172,26 +177,68 @@ public class MainActivity extends AppCompatActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                setOption(option, optionIndex);
                 switch (optionIndex) {
                     case 0:
-                        tvSubjectOption0.setText(option);
+                        tvSubjectOption0.setText("1. " + option);
                         break;
                     case 1:
-                        tvSubjectOption1.setText(option);
+                        tvSubjectOption1.setText("2. " + option);
                         break;
                     case 2:
-                        tvSubjectOption2.setText(option);
+                        tvSubjectOption2.setText("3. " + option);
                         break;
                     case 3:
-                        tvSubjectOption3.setText(option);
+                        tvSubjectOption3.setText("4. " + option);
                         break;
                     case 4:
-                        tvSubjectOption4.setText(option);
+                        tvSubjectOption4.setText("5. " + option);
                         break;
                 }
             }
         });
+    }
+
+    protected void setUserInputAndResult(int index, String userResult) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                clearOptionsColor();
+                tvUserASRResult.setText(userResult);
+                switch (index) {
+                    case 0:
+                        tvSubjectOption0.setBackgroundColor(Color.parseColor("#9c9ace"));
+                        break;
+                    case 1:
+                        tvSubjectOption1.setBackgroundColor(Color.parseColor("#9c9ace"));
+                        break;
+                    case 2:
+                        tvSubjectOption2.setBackgroundColor(Color.parseColor("#9c9ace"));
+                        break;
+                    case 3:
+                        tvSubjectOption3.setBackgroundColor(Color.parseColor("#9c9ace"));
+                        break;
+                    case 4:
+                        tvSubjectOption4.setBackgroundColor(Color.parseColor("#9c9ace"));
+                        break;
+                }
+            }
+        });
+    }
+
+    protected void clearOptionsText() {
+        tvSubjectOption0.setText("");
+        tvSubjectOption1.setText("");
+        tvSubjectOption2.setText("");
+        tvSubjectOption3.setText("");
+        tvSubjectOption4.setText("");
+    }
+
+    protected void clearOptionsColor() {
+        tvSubjectOption0.setBackgroundColor(Color.parseColor("#efefef"));
+        tvSubjectOption1.setBackgroundColor(Color.parseColor("#efefef"));
+        tvSubjectOption2.setBackgroundColor(Color.parseColor("#efefef"));
+        tvSubjectOption3.setBackgroundColor(Color.parseColor("#efefef"));
+        tvSubjectOption4.setBackgroundColor(Color.parseColor("#efefef"));
     }
 
 
@@ -203,7 +250,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public class QuizEventReceiver extends BroadcastReceiver {
-
         @Override
         public void onReceive(Context context, Intent intent) {
             String eventType = intent.getStringExtra("event");
@@ -226,6 +272,10 @@ public class MainActivity extends AppCompatActivity {
 
                 case "asr_start":
                     toastMessage("请说答案");
+                    break;
+
+                case "asr_result":
+                    setUserInputAndResult(intent.getIntExtra("result_index", -1), intent.getStringExtra("result_string"));
                     break;
 
                 case "asr_stop":
