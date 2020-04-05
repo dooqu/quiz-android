@@ -5,6 +5,7 @@ import android.util.Log;
 import com.dooqu.quiz.utils.StreamUtil;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -12,7 +13,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 
-public class Mp3StreamDecoder {
+public class Mp3StreamDecoder extends InputStream {
     static String TAG = Mp3StreamDecoder.class.getSimpleName();
     protected MpegAudioFileReader mpegAudioFileReader;
     protected PipedBufferStream pipedBufferStream;
@@ -21,7 +22,7 @@ public class Mp3StreamDecoder {
     protected volatile boolean isClosed;
     protected boolean initialized;
 
-    protected void initStream() throws IOException, javax.sound.sampled.UnsupportedAudioFileException {
+    public void open() throws IOException, javax.sound.sampled.UnsupportedAudioFileException {
         this.pipedBufferStream = new PipedBufferStream();
         this.mpegAudioFileReader = new MpegAudioFileReader();
         try {
@@ -40,8 +41,12 @@ public class Mp3StreamDecoder {
         }
     }
 
-    public Mp3StreamDecoder() throws IOException, UnsupportedAudioFileException {
-        initStream();
+    public Mp3StreamDecoder()  {
+    }
+
+    @Override
+    public int read() throws IOException {
+        return 0;
     }
 
 
@@ -51,6 +56,7 @@ public class Mp3StreamDecoder {
         }
     }
 
+    @Override
     public int read(byte[] buffer, int offset, int length) throws IOException {
         if (initialized && isClosed == false && pcmInputStream != null) {
             return pcmInputStream.read(buffer, offset, length);
@@ -58,6 +64,12 @@ public class Mp3StreamDecoder {
         return -1;
     }
 
+    @Override
+    public int read(byte[] b) throws IOException {
+        return read(b, 0, b.length);
+    }
+
+    @Override
     public int available() throws IOException{
         if (initialized && isClosed == false && pcmInputStream != null) {
             return pipedBufferStream.available();
@@ -65,6 +77,7 @@ public class Mp3StreamDecoder {
         return 0;
     }
 
+    @Override
     public void close() {
         StreamUtil.safeClose(mpegInputStream);
         StreamUtil.safeClose(pcmInputStream);
