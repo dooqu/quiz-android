@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         btnNewGame = findViewById(R.id.btnNewGame);
         tvUserASRResult = findViewById(R.id.tvUserASRResult);
         handler = new Handler();
+        clearOptionsText();
         btnNewGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -180,18 +181,23 @@ public class MainActivity extends AppCompatActivity {
                 switch (optionIndex) {
                     case 0:
                         tvSubjectOption0.setText("1. " + option);
+                        tvSubjectOption0.setVisibility(View.VISIBLE);
                         break;
                     case 1:
                         tvSubjectOption1.setText("2. " + option);
+                        tvSubjectOption1.setVisibility(View.VISIBLE);
                         break;
                     case 2:
                         tvSubjectOption2.setText("3. " + option);
+                        tvSubjectOption2.setVisibility(View.VISIBLE);
                         break;
                     case 3:
                         tvSubjectOption3.setText("4. " + option);
+                        tvSubjectOption3.setVisibility(View.VISIBLE);
                         break;
                     case 4:
                         tvSubjectOption4.setText("5. " + option);
+                        tvSubjectOption4.setVisibility(View.VISIBLE);
                         break;
                 }
             }
@@ -231,6 +237,11 @@ public class MainActivity extends AppCompatActivity {
         tvSubjectOption2.setText("");
         tvSubjectOption3.setText("");
         tvSubjectOption4.setText("");
+        tvSubjectOption0.setVisibility(View.INVISIBLE);
+        tvSubjectOption1.setVisibility(View.INVISIBLE);
+        tvSubjectOption2.setVisibility(View.INVISIBLE);
+        tvSubjectOption3.setVisibility(View.INVISIBLE);
+        tvSubjectOption4.setVisibility(View.INVISIBLE);
     }
 
     protected void clearOptionsColor() {

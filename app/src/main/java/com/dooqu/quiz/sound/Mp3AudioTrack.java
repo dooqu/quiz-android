@@ -20,7 +20,6 @@ import static com.dooqu.quiz.service.AudioChannelRecord.SAMPLE_RATE_IN_HZ;
 
 public class Mp3AudioTrack {
     static String TAG = Mp3AudioTrack.class.getSimpleName();
-    //protected long mp3StreamSize;
     protected PipedBufferStream pipedBufferStream;
     protected Thread playThread;
     protected AudioTrack audioTrack;

@@ -92,8 +92,8 @@ public class QuizService extends Service {
                 .readTimeout(5, TimeUnit.SECONDS)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .build();
-        //request = new Request.Builder().url("ws://dooqu.com:8000/service/quiz").build();
-        request = new Request.Builder().url("ws://192.168.31.38:8080/service/quiz").build();
+        request = new Request.Builder().url("ws://dooqu.com:8000/service/quiz").build();
+        //request = new Request.Builder().url("ws://192.168.31.38:8080/service/quiz").build();
         client.newWebSocket(request, webSocketListener);
     }
 
