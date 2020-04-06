@@ -7,62 +7,31 @@ import android.util.Log;
 
 import com.dooqu.quiz.utils.StreamUtil;
 
-import java.io.IOException;
-
-
 import static com.dooqu.quiz.service.AudioChannelRecord.SAMPLE_RATE_IN_HZ;
 
 public class Mp3AudioTrack {
     static String TAG = Mp3AudioTrack.class.getSimpleName();
-    //protected PipedBufferStream pipedBufferStream;
-    protected Thread playThread;
-    protected AudioTrack audioTrack;
-    protected int recoderSessionId;
-    protected Mp3StreamDecoder mp3StreamDecoder;
-    //protected MpegAudioFileReader mpegAudioFileReader;
 
+    protected int recoderSessionId;
     protected volatile boolean isPlaying;
+    protected AudioTrack audioTrack;
+    protected Mp3StreamDecoder mp3StreamDecoder;
 
     public Mp3AudioTrack(int recorderSessionId) {
         this.recoderSessionId = recorderSessionId;
-        mp3StreamDecoder = new Mp3StreamDecoder();
-    }
-
-    class DecodeAndPlayThread extends Thread {
-        @Override
-        public void run() {
-            try {
-                Mp3AudioTrack.this.mp3StreamDecoder.open();
-            }
-            catch (Exception ex) {
-                Log.e(TAG, ex.toString());
-                return;
-            }
-            int bytesReaded = -1;
-            do {
-                byte[] pcmBufferFrame = new byte[1280];
-                try {
-                    bytesReaded = mp3StreamDecoder.read(pcmBufferFrame, 0, pcmBufferFrame.length);
-                    Log.d(TAG, "Mp3AudioTrack:pcmBytesStream.read = " + bytesReaded);
-                    if (bytesReaded > 0 && initialized()) {
-                        audioTrack.write(pcmBufferFrame, 0, bytesReaded);
-                    }
-                }
-                catch (IOException ex) {
-                    Log.e(TAG, ex.toString());
-                    break;
+        mp3StreamDecoder = new Mp3StreamDecoder() {
+            @Override
+            protected void onDecodedData(byte[] buffer, int offset, int length) {
+                if(isPlaying) {
+                    audioTrack.write(buffer, offset, length);
                 }
             }
-            while (isPlaying && bytesReaded != -1);
-            Log.d(TAG, "Mp3AudioTrack.play() over.");
-        }
+        };
     }
 
     public void play() {
-        if (isPlaying == false && initAudioTrackInner() == true) {
-            isPlaying = true;
-            playThread = new DecodeAndPlayThread();
-            playThread.start();
+        isPlaying = true;
+        if (initAudioTrackInner() == true) {
             audioTrack.play();
         }
     }
@@ -94,6 +63,7 @@ public class Mp3AudioTrack {
 
         if (this.audioTrack.getState() == AudioTrack.STATE_INITIALIZED ) {
             Log.d(TAG, "Mp3AudioTrack init sucess.");
+            mp3StreamDecoder.prepare();
             return true;
         }
         else {
@@ -108,21 +78,11 @@ public class Mp3AudioTrack {
 
 
     public void stop() {
-        if (isPlaying == false) {
-            return;
-        }
         isPlaying = false;
-        if (playThread != null) {
-            try {
-                playThread.join();
-            }
-            catch (InterruptedException ex) {
-            }
-        }
         if (audioTrack != null) {
+            //audioTrack.pause();
             audioTrack.stop();
         }
-        StreamUtil.safeClose(mp3StreamDecoder);
     }
 
     public void release() {
@@ -133,6 +93,6 @@ public class Mp3AudioTrack {
             audioTrack.release();
             audioTrack = null;
         }
-        mp3StreamDecoder = null;
+        StreamUtil.safeClose(mp3StreamDecoder);
     }
 }

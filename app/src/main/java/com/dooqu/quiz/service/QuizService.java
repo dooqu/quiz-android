@@ -168,7 +168,7 @@ public class QuizService extends Service {
         @Override
         public void onMessage(WebSocket webSocket, ByteString bytes) {
             super.onMessage(webSocket, bytes);
-            //Log.d(TAG, "onByteMessage:" + bytes.size() + "framecount=" + bytes.size());
+            Log.d(TAG, "onByteMessage:" + bytes.size() + "framecount=" + bytes.size());
             mp3AudioTrack.write(bytes.toByteArray(), 0, bytes.size());
         }
 
