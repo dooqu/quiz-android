@@ -180,23 +180,23 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 switch (optionIndex) {
                     case 0:
-                        tvSubjectOption0.setText("1. " + option);
+                        tvSubjectOption0.setText("(1) " + option);
                         tvSubjectOption0.setVisibility(View.VISIBLE);
                         break;
                     case 1:
-                        tvSubjectOption1.setText("2. " + option);
+                        tvSubjectOption1.setText("(2) " + option);
                         tvSubjectOption1.setVisibility(View.VISIBLE);
                         break;
                     case 2:
-                        tvSubjectOption2.setText("3. " + option);
+                        tvSubjectOption2.setText("(3) " + option);
                         tvSubjectOption2.setVisibility(View.VISIBLE);
                         break;
                     case 3:
-                        tvSubjectOption3.setText("4. " + option);
+                        tvSubjectOption3.setText("(4) " + option);
                         tvSubjectOption3.setVisibility(View.VISIBLE);
                         break;
                     case 4:
-                        tvSubjectOption4.setText("5. " + option);
+                        tvSubjectOption4.setText("(5) " + option);
                         tvSubjectOption4.setVisibility(View.VISIBLE);
                         break;
                 }

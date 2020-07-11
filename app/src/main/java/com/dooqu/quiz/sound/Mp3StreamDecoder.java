@@ -15,6 +15,7 @@ import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 
 public class Mp3StreamDecoder implements Closeable {
     static String TAG = Mp3StreamDecoder.class.getSimpleName();
+
     protected MpegAudioFileReader mpegAudioFileReader;
     protected PipedBufferStream pipedBufferStream;
     protected AudioInputStream mpegInputStream;
