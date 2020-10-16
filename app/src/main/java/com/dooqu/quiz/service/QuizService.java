@@ -59,6 +59,7 @@ public class QuizService extends Service {
             protected void onRecordData(byte[] data, int size) {
                 if (socket != null) {
                     if (attachRecordingData) {
+                        Log.d(TAG, "send data");
                         socket.send(ByteString.of(data, 0, size));
                     }
                 }
@@ -91,8 +92,8 @@ public class QuizService extends Service {
                 .readTimeout(5, TimeUnit.SECONDS)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .build();
-        //request = new Request.Builder().url("ws://dooqu.com:8000/service/quiz").build();
-        request = new Request.Builder().url("ws://192.168.31.38:8080/service/quiz").build();
+        request = new Request.Builder().url("ws://dooqu.com:8080/service/quiz").build();
+        //request = new Request.Builder().url("ws://192.168.31.38:8080/service/quiz").build();
         client.newWebSocket(request, webSocketListener);
     }
 
@@ -146,7 +147,7 @@ public class QuizService extends Service {
 
                 case "TIT":
                     intent.putExtra("event", "subject_title");
-                    intent.putExtra("title", command.getArgumentAt(0));
+                    intent.putExtra("title", command.getArgumentAt(1));
                     sendBroadcast(intent);
                     break;
                 case "OPT":
